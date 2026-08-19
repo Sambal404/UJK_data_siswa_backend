@@ -1,5 +1,5 @@
 
-# 📑 DOKUMENTASI BACKEND API (`db_siswa`)
+# 📑 DOKUMENTASI BACKEND API DATA SISWA
 
 ## ⚙️ 1. Konfigurasi Environment (`.env`)
 
