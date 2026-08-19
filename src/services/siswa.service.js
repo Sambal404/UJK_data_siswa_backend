@@ -1,18 +1,26 @@
 const db = require('../config/database');
 
+// Tambahkan tanggalLahir pada mapping response
 const mapSiswaResponse = (row) => ({
     id: row.id,
     kodeSiswa: row.kode_siswa,
     namaSiswa: row.nama_siswa,
     phone: row.phone,
     alamat: row.alamat,
+
+    tanggalLahir: row.tanggal_lahir 
+        ? (new Date(row.tanggal_lahir).toISOString().length > 10 
+            ? new Date(row.tanggal_lahir).toISOString().split('T')[0] 
+            : row.tanggal_lahir)
+        : null,
+        
     jurusanId: row.jurusan_id,
     namaJurusan: row.nama_jurusan || null,
     createdAt: row.created_at,
     updated_at: row.updated_at || null,
 });
 
-// READ: Get all data dengan Pagination, Search, dan JOIN Jurusan
+// READ: Get all data dengan Pagination, Search, dan LEFT JOIN Jurusan
 async function getAllSiswa(query) {
     const page = parseInt(query.page) || 1;
     const limit = parseInt(query.limit) || 10;
@@ -22,15 +30,15 @@ async function getAllSiswa(query) {
 
     const [rows] = await db.execute(
         `
-        SELECT s.id, s.kode_siswa, s.nama_siswa, s.phone, s.alamat, s.jurusan_id, 
+        SELECT s.id, s.kode_siswa, s.nama_siswa, s.phone, s.alamat, s.tanggal_lahir, s.jurusan_id, 
                j.nama AS nama_jurusan, s.created_at, s.updated_at
         FROM siswa s
-        JOIN jurusan j ON s.jurusan_id = j.id
+        LEFT JOIN jurusan j ON s.jurusan_id = j.id
         WHERE s.nama_siswa LIKE ? OR s.kode_siswa LIKE ?
         ORDER BY s.id DESC
-        LIMIT ? OFFSET ?
+        LIMIT ${limit} OFFSET ${offset}
         `,
-        [search, search, limit, offset]
+        [search, search]
     );
 
     const [countResult] = await db.execute(
@@ -74,9 +82,16 @@ async function create(data) {
     }
 
     const [result] = await db.execute(
-        `INSERT INTO siswa (kode_siswa, nama_siswa, phone, alamat, jurusan_id)
-         VALUES (?, ?, ?, ?, ?)`,
-        [data.kodeSiswa, data.namaSiswa, data.phone, data.alamat || null, data.jurusanId]
+        `INSERT INTO siswa (kode_siswa, nama_siswa, phone, alamat, tanggal_lahir, jurusan_id)
+         VALUES (?, ?, ?, ?, ?, ?)`,
+        [
+            data.kodeSiswa, 
+            data.namaSiswa, 
+            data.phone, 
+            data.alamat || null, 
+            data.tanggalLahir, // <--- TAMBAH DI SINI
+            data.jurusanId || null
+        ]
     );
 
     return getById(result.insertId);
@@ -86,20 +101,18 @@ async function create(data) {
 async function getById(id) {
     const [rows] = await db.execute(
         `
-        SELECT s.id, s.kode_siswa, s.nama_siswa, s.phone, s.alamat, s.jurusan_id, 
+        SELECT s.id, s.kode_siswa, s.nama_siswa, s.phone, s.alamat, s.tanggal_lahir, s.jurusan_id, 
                j.nama AS nama_jurusan, s.created_at, s.updated_at
         FROM siswa s
-        JOIN jurusan j ON s.jurusan_id = j.id
+        LEFT JOIN jurusan j ON s.jurusan_id = j.id
         WHERE s.id = ?
         `, [id]
     );
 
     if (rows.length === 0) {
         const error = new Error("Siswa data not found");
-
         error.statusCode = 404;
         error.code = "SISWA_NOT_FOUND";
-
         throw error;
     }
 
@@ -118,18 +131,24 @@ async function update(id, data) {
 
     if (existing.length > 0) {
         const error = new Error("Kode siswa already listed by other student");
-
         error.statusCode = 409;
         error.code = "DUPLICATE_KODE_SISWA";
-
         throw error;
     }
 
     await db.execute(
         `UPDATE siswa 
-         SET kode_siswa = ?, nama_siswa = ?, phone = ?, alamat = ?, jurusan_id = ?
+         SET kode_siswa = ?, nama_siswa = ?, phone = ?, alamat = ?, tanggal_lahir = ?, jurusan_id = ?
          WHERE id = ?`,
-        [data.kodeSiswa, data.namaSiswa, data.phone, data.alamat || null, data.jurusanId, id]
+        [
+            data.kodeSiswa, 
+            data.namaSiswa, 
+            data.phone, 
+            data.alamat || null, 
+            data.tanggalLahir, // <--- TAMBAH DI SINI
+            data.jurusanId || null, 
+            id
+        ]
     );
 
     return getById(id);
@@ -141,10 +160,8 @@ async function hardDelete(id) {
 
     if (result.affectedRows === 0) {
         const error = new Error("Siswa data not found");
-
         error.statusCode = 404;
         error.code = "SISWA_NOT_FOUND";
-
         throw error;
     }
     return true;
