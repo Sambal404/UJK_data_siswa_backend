@@ -8,6 +8,7 @@ const logger = require('./utils/logger');
 const errorHandler = require('./middlewares/error.middleware');
 
 // routes source
+const siswaRoutes = require('./routes/siswa.routes');
 
 // express
 const app = express();
@@ -17,7 +18,7 @@ app.use(cors());
 app.use(express.json());
 
 // routings
-
+app.use('/api/v1/siswa', siswaRoutes);
 
 // errorHandler | loggers
 app.use(errorHandler);
