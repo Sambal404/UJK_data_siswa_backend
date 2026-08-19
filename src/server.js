@@ -9,6 +9,7 @@ const errorHandler = require('./middlewares/error.middleware');
 
 // routes source
 const siswaRoutes = require('./routes/siswa.routes');
+const jurusanRoutes = require('./routes/jurusan.routes');
 
 // express
 const app = express();
@@ -19,6 +20,7 @@ app.use(express.json());
 
 // routings
 app.use('/api/v1/siswa', siswaRoutes);
+app.use('/api/v1/jurusan', jurusanRoutes);
 
 // errorHandler | loggers
 app.use(errorHandler);
