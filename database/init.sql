@@ -1,0 +1,31 @@
+-- ===================================
+--  DATABASE SISWA (UJK PREPARATION)
+-- ===================================
+
+DROP DATABASE IF EXISTS db_siswa;
+CREATE DATABASE IF NOT EXISTS db_siswa;
+USE db_siswa;
+
+-- Tabel Jurusan
+CREATE TABLE IF NOT EXISTS jurusan (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nama VARCHAR(50) NOT NULL UNIQUE,
+    deskripsi TEXT,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabel Siswa
+CREATE TABLE IF NOT EXISTS siswa (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    kode_siswa VARCHAR(30) NOT NULL UNIQUE,
+    nama_siswa VARCHAR(100) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    alamat VARCHAR(255),
+    jurusan_id INT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (jurusan_id) REFERENCES jurusan(id) ON DELETE RESTRICT
+);
