@@ -143,3 +143,34 @@ npm start
 }
 
 ```
+
+---
+
+## 4. Database Siswa
+
+### 4.1. Entity Relationship Diagram (ERD)
+Tabel `siswa` memiliki relasi *Many-to-One* terhadap tabel `jurusan`.
+
+```mermaid
+erDiagram
+    JURUSAN {
+        int id PK
+        varchar(50) nama UK
+        text deskripsi
+        timestamp created_at
+        timestamp updated_at
+    }
+    
+    SISWA {
+        int id PK
+        varchar(30) kode_siswa UK
+        varchar(100) nama_siswa
+        varchar(20) phone
+        varchar(255) alamat
+        date tanggal_lahir
+        int jurusan_id FK
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    JURUSAN ||--o{ SISWA : "memiliki"
